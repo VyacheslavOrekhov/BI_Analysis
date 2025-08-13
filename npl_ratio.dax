@@ -1,0 +1,9 @@
+-- NPL Ratio = EAD для NPL / Общее EAD
+NPL Ratio :=
+DIVIDE(
+    CALCULATE(
+        SUM('Loans'[EAD]),
+        'Loans'[Status] = "NPL"
+    ),
+    SUM('Loans'[EAD])
+)
