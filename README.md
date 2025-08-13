@@ -1,2 +1,10 @@
-# BI_Analysis
-BI Analytics
+# DAX Portfolio
+
+- **NPL Ratio** — доля неработающих кредитов.
+- **Average PD** — средняя вероятность дефолта.
+- **Average LGD** — средняя потеря при дефолте.
+- **Roll Rate** — матрица переходов между статусами.
+- **Total EAD** — общая экспозиция на момент дефолта.
+- **Cut-Off Score** — определение оптимального порога скоринга.
+
+# PowerBI and Tabular Editor
