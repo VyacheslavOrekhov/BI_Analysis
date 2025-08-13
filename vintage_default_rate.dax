@@ -1,0 +1,14 @@
+Vintage Default Rate :=
+VAR LoansIssued =
+    CALCULATE(
+        COUNTROWS('Loans'),
+        ALLEXCEPT('Loans', 'Loans'[IssueMonth])
+    )
+VAR Defaults =
+    CALCULATE(
+        COUNTROWS('Loans'),
+        'Loans'[DefaultFlag] = 1,
+        ALLEXCEPT('Loans', 'Loans'[IssueMonth], 'Loans'[MonthsOnBook])
+    )
+RETURN
+DIVIDE(Defaults, LoansIssued)
