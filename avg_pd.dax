@@ -1,0 +1,5 @@
+Average PD :=
+AVERAGEX(
+    VALUES('Loans'[LoanID]),
+    'Loans'[PD]
+)
