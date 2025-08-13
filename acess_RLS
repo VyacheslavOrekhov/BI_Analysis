@@ -1,0 +1,54 @@
+-- 1. Роли по должностям
+CREATE ROLE "risk_analyst"    NOLOGIN;  -- Риск‑аналитик: чтение витрин и расчетов
+CREATE ROLE "bi_analyst"      NOLOGIN;  -- BI‑аналитик: чтение + доступ к BI-данным
+CREATE ROLE "head_of_risk"    NOLOGIN;  -- Начальник отдела рисков: расширенные права
+CREATE ROLE "data_loader"     NOLOGIN;  -- Технический пользователь для загрузки данных
+
+-- 2. Таблица с мультиорганизационными данными
+CREATE TABLE loans_secure (
+    loan_id     bigint PRIMARY KEY,
+    org_id      uuid NOT NULL,
+    client_hash text NOT NULL,
+    principal   numeric(14,2),
+    status_code text
+);
+
+-- 3. Функция для установки tenant (организации) в сессии
+CREATE OR REPLACE FUNCTION set_tenant(p_org uuid)
+RETURNS void LANGUAGE plpgsql AS $$
+BEGIN
+    PERFORM set_config('app.current_tenant', p_org::text, true);
+END; $$;
+
+-- 4. Хелпер для получения текущего tenant
+CREATE OR REPLACE FUNCTION current_tenant()
+RETURNS uuid LANGUAGE sql AS
+$$ SELECT NULLIF(current_setting('app.current_tenant', true),'')::uuid; $$;
+
+-- 5. Включаем RLS
+ALTER TABLE loans_secure ENABLE ROW LEVEL SECURITY;
+
+-- 6. Политики доступа
+CREATE POLICY loans_select_risk ON loans_secure
+    FOR SELECT TO "risk_analyst"
+    USING (org_id = current_tenant());
+
+CREATE POLICY loans_select_bi ON loans_secure
+    FOR SELECT TO "bi_analyst"
+    USING (org_id = current_tenant());
+
+-- Полные права: начальник отдела
+CREATE POLICY loans_rw_head ON loans_secure
+    FOR ALL TO "head_of_risk"
+    USING (org_id = current_tenant())
+    WITH CHECK (org_id = current_tenant());
+
+-- Техническая загрузка данных
+CREATE POLICY loans_rw_loader ON loans_secure
+    FOR ALL TO "data_loader"
+    USING (true)
+    WITH CHECK (true);
+
+-- 7. Выдаём права
+GRANT SELECT ON loans_secure TO "risk_analyst", "bi_analyst";
+GRANT SELECT, INSERT, UPDATE, DELETE ON loans_secure TO "head_of_risk", "data_loader";
