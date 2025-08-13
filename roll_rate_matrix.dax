@@ -1,0 +1,14 @@
+Roll Rate :=
+VAR PrevStatus = SELECTEDVALUE('Loans'[PrevStatus])
+RETURN
+DIVIDE(
+    CALCULATE(
+        COUNTROWS('Loans'),
+        'Loans'[CurrStatus] = SELECTEDVALUE('Loans'[CurrStatus]),
+        'Loans'[PrevStatus] = PrevStatus
+    ),
+    CALCULATE(
+        COUNTROWS('Loans'),
+        'Loans'[PrevStatus] = PrevStatus
+    )
+)
